@@ -17,6 +17,22 @@ export class ZenotiApiError extends Error {
   }
 }
 
+export interface RedeemPointsResult {
+  transactionId: string;
+  balanceAfter: number;
+}
+
+/**
+ * Contract implemented by both the real {@link ZenotiClient} and the
+ * {@link MockZenotiClient} test provider, so the app can swap between them.
+ */
+export interface IZenotiClient {
+  findGuest(params: { email?: string; phone?: string }): Promise<ZenotiGuest | null>;
+  getGuest(guestId: string): Promise<ZenotiGuest>;
+  getLoyaltyBalance(guestId: string): Promise<number>;
+  redeemPoints(params: { guestId: string; points: number; note?: string }): Promise<RedeemPointsResult>;
+}
+
 /**
  * Thin Zenoti Admin API client. Endpoints follow Zenoti's public v1 API shape;
  * exact loyalty routes are gated per-account, so the paths below are isolated
@@ -24,7 +40,7 @@ export class ZenotiApiError extends Error {
  *
  * Docs: https://docs.zenoti.com/  (Loyalty Points / Guests)
  */
-export class ZenotiClient {
+export class ZenotiClient implements IZenotiClient {
   constructor(
     private readonly config: ZenotiConfig,
     private readonly fetchImpl: typeof fetch = fetch,

@@ -88,8 +88,27 @@ is committed. Key groups:
 |---|---|
 | Database | `DATABASE_URL` |
 | Shopify | `SHOPIFY_STORE_DOMAIN`, `SHOPIFY_ADMIN_API_TOKEN`, `SHOPIFY_API_VERSION`, `SHOPIFY_WEBHOOK_SECRET` |
-| Zenoti | `ZENOTI_API_BASE_URL`, `ZENOTI_API_KEY`, `ZENOTI_CENTER_ID` |
+| Zenoti | `ZENOTI_MODE`, `ZENOTI_MOCK_DEFAULT_POINTS`, `ZENOTI_API_BASE_URL`, `ZENOTI_API_KEY`, `ZENOTI_CENTER_ID` |
 | Loyalty | `LOYALTY_POINTS_PER_UNIT`, `LOYALTY_UNIT_VALUE_ZAR`, `LOYALTY_MIN_REDEEM_POINTS`, `LOYALTY_CODE_VALIDITY_MONTHS`, `LOYALTY_CURRENCY` |
+
+### Testing without Zenoti credentials (mock mode)
+
+Zenoti gates its loyalty API per-account, so to exercise the full flow before you
+have credentials, set **`ZENOTI_MODE=mock`** (the default in `.env.example`). This
+swaps in an in-memory test provider (`MockZenotiClient`):
+
+- Any logged-in Shopify customer is treated as a Zenoti guest with
+  `ZENOTI_MOCK_DEFAULT_POINTS` (default **500**) points.
+- Balances live in-process and decrease only when points are deducted
+  post-payment — exactly like the real flow.
+- No network calls, no keys required. **Never use in production.**
+
+Switch to the real integration with `ZENOTI_MODE=live` + `ZENOTI_API_KEY` (point
+`ZENOTI_API_BASE_URL` at your Zenoti sandbox tenant to test against real Zenoti).
+
+> Note: resolving a customer still starts with a Shopify customer lookup, so
+> end-to-end testing uses your **real Shopify** store with **mock Zenoti**. For a
+> customer already linked in the DB, the Shopify lookup is skipped.
 
 ## API surface (NestJS)
 
