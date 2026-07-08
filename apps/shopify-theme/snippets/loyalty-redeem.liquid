@@ -1,0 +1,82 @@
+{%- comment -%}
+  Deluxe loyalty redemption widget.
+
+  Include on a customer-account or cart page:
+    {% render 'loyalty-redeem' %}
+
+  Set your deployed middleware base URL below (or expose it via a theme setting).
+  Requires a logged-in customer.
+{%- endcomment -%}
+
+{%- if customer -%}
+  <div
+    id="deluxe-loyalty-redeem"
+    data-customer-id="{{ customer.id }}"
+    data-middleware-url="{{ settings.loyalty_middleware_url | default: 'https://your-middleware.example.com' }}"
+  >
+    <h3>Ways to Redeem</h3>
+    <p>100 points = R3. You can use only one code per order. Codes are valid for 6 months.</p>
+
+    <label for="deluxe-points">Points to redeem (multiples of 100)</label>
+    <input id="deluxe-points" type="number" min="100" step="100" value="100" />
+
+    <button id="deluxe-redeem-btn" type="button">Redeem</button>
+
+    <div id="deluxe-redeem-result" hidden>
+      <p>Your discount code:</p>
+      <code id="deluxe-code"></code>
+      <a id="deluxe-apply" href="#">Apply Code</a>
+    </div>
+
+    <p id="deluxe-redeem-error" role="alert" hidden></p>
+  </div>
+
+  <script>
+    (function () {
+      var root = document.getElementById('deluxe-loyalty-redeem');
+      if (!root) return;
+      var base = root.getAttribute('data-middleware-url');
+      var customerId = root.getAttribute('data-customer-id');
+      var btn = document.getElementById('deluxe-redeem-btn');
+      var input = document.getElementById('deluxe-points');
+      var result = document.getElementById('deluxe-redeem-result');
+      var codeEl = document.getElementById('deluxe-code');
+      var applyEl = document.getElementById('deluxe-apply');
+      var errEl = document.getElementById('deluxe-redeem-error');
+
+      btn.addEventListener('click', function () {
+        errEl.hidden = true;
+        result.hidden = true;
+        btn.disabled = true;
+        fetch(base.replace(/\/$/, '') + '/redemptions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            shopifyCustomerId: 'gid://shopify/Customer/' + customerId,
+            points: parseInt(input.value, 10)
+          })
+        })
+          .then(function (r) {
+            return r.json().then(function (body) {
+              if (!r.ok) throw new Error(body.message || 'Redemption failed');
+              return body;
+            });
+          })
+          .then(function (data) {
+            codeEl.textContent = data.discountCode;
+            applyEl.href = '/discount/' + encodeURIComponent(data.discountCode);
+            result.hidden = false;
+          })
+          .catch(function (e) {
+            errEl.textContent = e.message;
+            errEl.hidden = false;
+          })
+          .finally(function () {
+            btn.disabled = false;
+          });
+      });
+    })();
+  </script>
+{%- else -%}
+  <p>Please <a href="/account/login">log in</a> to redeem your loyalty points.</p>
+{%- endif -%}
