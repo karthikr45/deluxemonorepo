@@ -49,8 +49,11 @@ model Redemption {
   shopifyPriceRuleId    String?
   shopifyDiscountCodeId String?
   zenotiTransactionId   String?
+  shopifyOrderId        String?
+  shopifyOrderName      String?
   status                RedemptionStatus @default(PENDING)
   issuedAt              DateTime?
+  appliedAt             DateTime?
   expiresAt             DateTime?
   failureReason         String?
   createdAt             DateTime         @default(now())
@@ -129,10 +132,11 @@ model SyncRun {
 }
 
 enum RedemptionStatus {
-  PENDING
-  ISSUED
-  APPLIED
-  EXPIRED
+  PENDING // row created, before the Shopify code exists
+  ISSUED // code created, points RESERVED (not yet deducted) — awaiting payment
+  REDEEMING // orders/paid received, Zenoti deduction in progress (claim lock)
+  APPLIED // order paid & points deducted in Zenoti
+  EXPIRED // 6-month code validity lapsed unused; reservation released
   FAILED
   CANCELLED
 }

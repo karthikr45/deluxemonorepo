@@ -25,24 +25,41 @@ deluxemonorepo/
 
 ## How redemption works
 
+Points are **reserved** when a code is generated and only **deducted in Zenoti
+after payment** — so points are only ever spent on a completed order.
+
 ```
-Shopify theme widget ──POST /redemptions──▶ NestJS API
-                                              │ 1. resolve user (Shopify↔Zenoti map, by email/phone)
-                                              │ 2. read LIVE Zenoti points balance
-                                              │ 3. validate (min 100, multiples of 100, ≤ balance)
-                                              │ 4. deduct points in Zenoti  ◀── source of truth
-                                              │ 5. create single-use Shopify discount code (= R value)
-                                              │ 6. persist Redemption + ledger entry
-                                              ▼
-                            { discountCode, amountZar, expiresAt } ──▶ shopper applies at checkout
+Cart widget ──GET /loyalty/balance──▶ shows AVAILABLE points (balance − reserved)
+
+Cart widget ──POST /redemptions──▶ NestJS API
+                                     │ 1. resolve user (Shopify↔Zenoti map, by email/phone)
+                                     │ 2. read LIVE Zenoti balance
+                                     │ 3. available = balance − reserved (open codes)
+                                     │ 4. validate (min 100, multiples of 100, ≤ available)
+                                     │ 5. create single-use Shopify discount code (= R value)
+                                     │ 6. status = ISSUED  (points RESERVED, NOT deducted)
+                                     ▼
+             { discountCode, amountZar, expiresAt } ──▶ /discount/CODE?redirect=/checkout
+
+Shopper pays ──▶ Shopify `orders/paid` webhook ──▶ NestJS API
+                                                     │ atomic claim ISSUED → REDEEMING
+                                                     │ deduct points in Zenoti  ◀── now
+                                                     │ status = APPLIED + ledger entry
 ```
 
-Points are deducted in Zenoti **before** the Shopify code is created, so value is
-never issued without the points being spent. If Shopify code creation then fails,
-the redemption is marked `FAILED` and logged as an `ERROR` for reconciliation.
+**Reservation** prevents a shopper from generating codes worth more points than
+they hold: `available = live balance − points locked by open (ISSUED) codes`.
+Unused codes past their 6-month expiry are swept back to `EXPIRED`, releasing the
+reservation (cron, every 6h).
 
-Once a Shopify **orders/** webhook shows the code was used, the redemption flips
-to `APPLIED`.
+**Idempotency & safety:** the `orders/paid` handler uses an atomic
+`ISSUED → REDEEMING` claim so duplicate webhook deliveries deduct only once. If
+the Zenoti deduction fails *after* a paid order, the redemption is marked
+`FAILED` and logged as an `ERROR` for manual reconciliation (the discount was
+already used, so this must be surfaced).
+
+Redemption statuses: `PENDING → ISSUED → REDEEMING → APPLIED`, plus `EXPIRED`,
+`FAILED`, `CANCELLED`.
 
 ## Getting started
 
@@ -78,14 +95,15 @@ is committed. Key groups:
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/redemptions` | Redeem points → returns a discount code (called by the theme) |
+| GET | `/loyalty/balance?shopifyCustomerId=` | Available points for a customer (cart widget) |
+| POST | `/redemptions` | Reserve points → returns a discount code (called by the theme) |
 | GET | `/redemptions` | List redemptions (dashboard) |
 | GET | `/users` | List linked users |
 | GET | `/stats/summary` | KPI snapshot |
 | GET | `/stats/redemption-trend?days=14` | Daily redemption series |
 | GET | `/activity` | Activity log feed |
 | POST | `/sync/run` | Trigger a Zenoti balance sync |
-| POST | `/webhooks/shopify` | Shopify order webhooks (HMAC-verified) |
+| POST | `/webhooks/shopify` | Shopify `orders/paid` webhook (HMAC-verified) → deducts points in Zenoti |
 | GET | `/health` | Liveness + DB check |
 
 ## The Zenoti & Shopify clients

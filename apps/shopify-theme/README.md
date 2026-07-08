@@ -27,18 +27,47 @@ apps/shopify-theme/
 └─ templates/
 ```
 
-## Loyalty redemption widget
+## Loyalty redemption widget (cart)
 
-To wire the storefront "Ways to Redeem → Redeem" flow to this middleware, add a
-snippet that calls the API and renders the returned discount code. A starting
-point is provided in `snippets/loyalty-redeem.liquid` (see below). Point it at
-your deployed middleware URL and include it in the customer account or cart page.
+`snippets/loyalty-redeem.liquid` is a ready-to-use cart widget. For a logged-in
+shopper it:
 
-The widget should:
-1. Read the logged-in `customer.id`.
-2. Let the shopper choose how many points to redeem (increments of 100 = R3).
-3. `POST {MIDDLEWARE_URL}/redemptions` with `{ shopifyCustomerId, points }`.
-4. Show the returned `discountCode` and an "Apply Code" button that sets
-   `/discount/CODE` (or copies it for manual entry at checkout).
+1. Reads `customer.id`.
+2. Calls `GET {MIDDLEWARE_URL}/loyalty/balance?shopifyCustomerId=gid://shopify/Customer/{id}`
+   and shows their **available** points and Rand value.
+3. Lets them redeem in 100-point (R3) increments →
+   `POST {MIDDLEWARE_URL}/redemptions` with `{ shopifyCustomerId, points }`.
+4. Renders the returned `discountCode` with **Apply & Checkout**, which sends the
+   shopper to `/discount/CODE?redirect=/checkout` so the code is applied
+   automatically.
 
-> One code per order. Codes are valid for 6 months from issue.
+> Points are **reserved** when the code is generated and only **deducted in
+> Zenoti after payment** (via the `orders/paid` webhook). One code per order.
+> Codes are valid for 6 months from issue.
+
+### 1. Configure the middleware URL
+
+In the Shopify theme editor: **Theme settings → Loyalty (Deluxe × Zenoti) →
+Middleware URL**, set it to your deployed API base URL (e.g.
+`https://loyalty.deluxe.co.za`). The widget reads `settings.loyalty_middleware_url`.
+
+### 2. Render the widget in the cart
+
+Add it to your cart section/template (e.g. `sections/main-cart-footer.liquid`,
+`sections/main-cart-items.liquid`, or the cart drawer snippet):
+
+```liquid
+{% render 'loyalty-redeem' %}
+```
+
+### 3. Register the Shopify webhook (post-payment deduction)
+
+Create an **Order payment** webhook so points are deducted only after payment:
+
+- Topic: `orders/paid`
+- URL: `{MIDDLEWARE_URL}/webhooks/shopify`
+- Format: JSON
+
+The webhook is HMAC-verified using `SHOPIFY_WEBHOOK_SECRET`. On `orders/paid`,
+the middleware finds the redemption by the used discount code and deducts the
+reserved points in Zenoti.

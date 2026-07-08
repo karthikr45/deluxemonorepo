@@ -1,60 +1,129 @@
 {%- comment -%}
-  Deluxe loyalty redemption widget.
+  Deluxe loyalty redemption widget (cart).
 
-  Include on a customer-account or cart page:
+  Shows the logged-in shopper's AVAILABLE Zenoti loyalty points, lets them
+  redeem in R3 / 100-point increments, generates a single-use Shopify discount
+  code via the middleware, and applies it on the way to checkout.
+
+  Points are only DEDUCTED in Zenoti after payment (orders/paid webhook), so
+  generating a code here just reserves the points.
+
+  Include on the cart page / cart drawer:
     {% render 'loyalty-redeem' %}
 
-  Set your deployed middleware base URL below (or expose it via a theme setting).
-  Requires a logged-in customer.
+  Set the middleware URL via theme setting `loyalty_middleware_url`
+  (Theme editor → Theme settings → Loyalty), or edit the default below.
 {%- endcomment -%}
 
 {%- if customer -%}
   <div
-    id="deluxe-loyalty-redeem"
+    id="deluxe-loyalty"
     data-customer-id="{{ customer.id }}"
     data-middleware-url="{{ settings.loyalty_middleware_url | default: 'https://your-middleware.example.com' }}"
   >
-    <h3>Ways to Redeem</h3>
-    <p>100 points = R3. You can use only one code per order. Codes are valid for 6 months.</p>
-
-    <label for="deluxe-points">Points to redeem (multiples of 100)</label>
-    <input id="deluxe-points" type="number" min="100" step="100" value="100" />
-
-    <button id="deluxe-redeem-btn" type="button">Redeem</button>
-
-    <div id="deluxe-redeem-result" hidden>
-      <p>Your discount code:</p>
-      <code id="deluxe-code"></code>
-      <a id="deluxe-apply" href="#">Apply Code</a>
+    <div class="deluxe-loyalty__header">
+      <h3 class="deluxe-loyalty__title">Loyalty Points</h3>
+      <div id="deluxe-loyalty-balance" class="deluxe-loyalty__balance">Loading your points…</div>
     </div>
 
-    <p id="deluxe-redeem-error" role="alert" hidden></p>
+    <div id="deluxe-loyalty-redeemer" hidden>
+      <p class="deluxe-loyalty__hint">100 points = R3. One code per order. Codes valid for 6 months.</p>
+      <div class="deluxe-loyalty__row">
+        <label for="deluxe-points">Points to redeem</label>
+        <input id="deluxe-points" type="number" min="100" step="100" value="100" />
+        <button id="deluxe-redeem-btn" type="button">Redeem</button>
+      </div>
+    </div>
+
+    <div id="deluxe-loyalty-result" class="deluxe-loyalty__result" hidden>
+      <p>Your discount code (applied at checkout):</p>
+      <code id="deluxe-code"></code>
+      <div class="deluxe-loyalty__actions">
+        <button id="deluxe-apply" type="button">Apply &amp; Checkout</button>
+        <button id="deluxe-copy" type="button">Copy code</button>
+      </div>
+    </div>
+
+    <p id="deluxe-loyalty-error" class="deluxe-loyalty__error" role="alert" hidden></p>
   </div>
 
   <script>
     (function () {
-      var root = document.getElementById('deluxe-loyalty-redeem');
+      var root = document.getElementById('deluxe-loyalty');
       if (!root) return;
-      var base = root.getAttribute('data-middleware-url');
-      var customerId = root.getAttribute('data-customer-id');
-      var btn = document.getElementById('deluxe-redeem-btn');
-      var input = document.getElementById('deluxe-points');
-      var result = document.getElementById('deluxe-redeem-result');
-      var codeEl = document.getElementById('deluxe-code');
-      var applyEl = document.getElementById('deluxe-apply');
-      var errEl = document.getElementById('deluxe-redeem-error');
 
-      btn.addEventListener('click', function () {
+      var base = (root.getAttribute('data-middleware-url') || '').replace(/\/$/, '');
+      var gid = 'gid://shopify/Customer/' + root.getAttribute('data-customer-id');
+
+      var balanceEl = document.getElementById('deluxe-loyalty-balance');
+      var redeemer = document.getElementById('deluxe-loyalty-redeemer');
+      var input = document.getElementById('deluxe-points');
+      var redeemBtn = document.getElementById('deluxe-redeem-btn');
+      var result = document.getElementById('deluxe-loyalty-result');
+      var codeEl = document.getElementById('deluxe-code');
+      var applyBtn = document.getElementById('deluxe-apply');
+      var copyBtn = document.getElementById('deluxe-copy');
+      var errEl = document.getElementById('deluxe-loyalty-error');
+
+      var cfg = { pointsPerUnit: 100, minRedeemPoints: 100, unitValueZar: 3, currency: 'ZAR' };
+
+      function showError(msg) {
+        errEl.textContent = msg;
+        errEl.hidden = false;
+      }
+
+      // 1. Load the shopper's available points.
+      fetch(base + '/loyalty/balance?shopifyCustomerId=' + encodeURIComponent(gid))
+        .then(function (r) {
+          return r.json().then(function (b) {
+            if (!r.ok) throw new Error(b.message || 'Could not load points');
+            return b;
+          });
+        })
+        .then(function (data) {
+          cfg.pointsPerUnit = data.pointsPerUnit || cfg.pointsPerUnit;
+          cfg.minRedeemPoints = data.minRedeemPoints || cfg.minRedeemPoints;
+          cfg.unitValueZar = data.unitValueZar || cfg.unitValueZar;
+          cfg.currency = data.currency || cfg.currency;
+
+          if (!data.linked) {
+            balanceEl.textContent = 'Your loyalty profile is not linked yet.';
+            return;
+          }
+
+          balanceEl.innerHTML =
+            '<strong>' + data.available.toLocaleString() + '</strong> points available' +
+            ' (' + cfg.currency + ' ' + Number(data.availableValueZar).toFixed(2) + ')';
+
+          if (data.available < cfg.minRedeemPoints) {
+            balanceEl.innerHTML +=
+              '<br><span class="deluxe-loyalty__muted">Earn at least ' +
+              cfg.minRedeemPoints + ' points to redeem.</span>';
+            return;
+          }
+
+          // Cap the input to a whole multiple of the point unit.
+          var maxRedeemable =
+            Math.floor(data.available / cfg.pointsPerUnit) * cfg.pointsPerUnit;
+          input.max = maxRedeemable;
+          input.step = cfg.pointsPerUnit;
+          input.min = cfg.minRedeemPoints;
+          input.value = cfg.minRedeemPoints;
+          redeemer.hidden = false;
+        })
+        .catch(function (e) {
+          balanceEl.textContent = '';
+          showError(e.message);
+        });
+
+      // 2. Redeem -> generate a discount code (reserves points).
+      redeemBtn.addEventListener('click', function () {
         errEl.hidden = true;
-        result.hidden = true;
-        btn.disabled = true;
-        fetch(base.replace(/\/$/, '') + '/redemptions', {
+        redeemBtn.disabled = true;
+        fetch(base + '/redemptions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            shopifyCustomerId: 'gid://shopify/Customer/' + customerId,
-            points: parseInt(input.value, 10)
-          })
+          body: JSON.stringify({ shopifyCustomerId: gid, points: parseInt(input.value, 10) })
         })
           .then(function (r) {
             return r.json().then(function (body) {
@@ -64,19 +133,54 @@
           })
           .then(function (data) {
             codeEl.textContent = data.discountCode;
-            applyEl.href = '/discount/' + encodeURIComponent(data.discountCode);
+            redeemer.hidden = true;
             result.hidden = false;
+            // 3. Apply the code and head to checkout.
+            applyBtn.onclick = function () {
+              window.location.href =
+                '/discount/' + encodeURIComponent(data.discountCode) + '?redirect=/checkout';
+            };
+            copyBtn.onclick = function () {
+              if (navigator.clipboard) navigator.clipboard.writeText(data.discountCode);
+              copyBtn.textContent = 'Copied';
+            };
           })
           .catch(function (e) {
-            errEl.textContent = e.message;
-            errEl.hidden = false;
+            showError(e.message);
           })
           .finally(function () {
-            btn.disabled = false;
+            redeemBtn.disabled = false;
           });
       });
     })();
   </script>
+
+  <style>
+    #deluxe-loyalty {
+      border: 1px solid rgba(0, 0, 0, 0.12);
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin: 16px 0;
+    }
+    .deluxe-loyalty__title { margin: 0 0 4px; font-size: 1rem; }
+    .deluxe-loyalty__balance { font-size: 0.95rem; margin-bottom: 10px; }
+    .deluxe-loyalty__hint { font-size: 0.8rem; opacity: 0.7; margin: 0 0 10px; }
+    .deluxe-loyalty__muted { opacity: 0.6; font-size: 0.8rem; }
+    .deluxe-loyalty__row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .deluxe-loyalty__row input { width: 110px; padding: 8px; }
+    .deluxe-loyalty__row button,
+    .deluxe-loyalty__actions button {
+      padding: 8px 14px; cursor: pointer; border: 0; border-radius: 6px;
+      background: #d4af37; color: #1a1a1a; font-weight: 600;
+    }
+    .deluxe-loyalty__result code {
+      display: inline-block; padding: 6px 10px; margin: 6px 0;
+      background: rgba(0,0,0,0.06); border-radius: 6px; font-size: 1rem; letter-spacing: 1px;
+    }
+    .deluxe-loyalty__actions { display: flex; gap: 8px; margin-top: 6px; }
+    .deluxe-loyalty__actions button:last-child { background: transparent; border: 1px solid rgba(0,0,0,0.2); }
+    .deluxe-loyalty__error { color: #c0392b; font-size: 0.85rem; margin-top: 8px; }
+  </style>
 {%- else -%}
-  <p>Please <a href="/account/login">log in</a> to redeem your loyalty points.</p>
+  <p><a href="/account/login">Log in</a> to redeem your loyalty points.</p>
 {%- endif -%}

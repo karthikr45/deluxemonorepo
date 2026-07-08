@@ -1567,5 +1567,21 @@
         "default": true
       }
     ]
+  },
+  {
+    "name": "Loyalty (Deluxe × Zenoti)",
+    "settings": [
+      {
+        "type": "paragraph",
+        "content": "Base URL of the loyalty middleware API used by the cart redemption widget (loyalty-redeem snippet)."
+      },
+      {
+        "type": "text",
+        "id": "loyalty_middleware_url",
+        "label": "Middleware URL",
+        "default": "https://your-middleware.example.com",
+        "info": "e.g. https://loyalty.deluxe.co.za — no trailing slash needed"
+      }
+    ]
   }
 ]

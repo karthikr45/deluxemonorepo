@@ -12,10 +12,12 @@ import { LogCategory, WebhookSource, WebhookStatus } from '@deluxe/db';
 import { PrismaService } from '../prisma/prisma.service';
 import { ShopifyService } from '../shopify/shopify.service';
 import { ActivityService } from '../activity/activity.service';
+import { RedemptionService } from '../redemption/redemption.service';
 
 /**
- * Inbound webhooks. Shopify order events let us mark a redemption as APPLIED
- * once its discount code is used. All events are persisted for the dashboard.
+ * Inbound webhooks. On a PAID Shopify order, any discount code we issued is
+ * consumed: the reserved loyalty points are deducted in Zenoti and the
+ * redemption is marked APPLIED. All events are persisted for the dashboard.
  */
 @Controller('webhooks')
 export class WebhooksController {
@@ -23,6 +25,7 @@ export class WebhooksController {
     private readonly prisma: PrismaService,
     private readonly shopify: ShopifyService,
     private readonly activity: ActivityService,
+    private readonly redemption: RedemptionService,
   ) {}
 
   @Post('shopify')
@@ -70,27 +73,26 @@ export class WebhooksController {
     return { received: true };
   }
 
-  /** Mark redemptions APPLIED when their discount code appears on a paid order. */
+  /**
+   * On a PAID order, deduct the reserved points in Zenoti for every code we
+   * issued that was used. We only act on `orders/paid` so points are spent only
+   * once payment has actually completed.
+   */
   private async handleShopifyEvent(topic: string, payload: Record<string, unknown>) {
-    if (!topic.startsWith('orders/')) return;
+    if (topic !== 'orders/paid') return;
 
     const discountCodes = (payload.discount_codes as Array<{ code?: string }> | undefined) ?? [];
+    const shopifyOrderId = payload.id != null ? String(payload.id) : undefined;
+    const shopifyOrderName =
+      typeof payload.name === 'string' ? payload.name : undefined;
+
     for (const dc of discountCodes) {
       if (!dc.code) continue;
-      const redemption = await this.prisma.redemption.findUnique({
-        where: { discountCode: dc.code },
+      await this.redemption.consumeByDiscountCode({
+        code: dc.code,
+        shopifyOrderId,
+        shopifyOrderName,
       });
-      if (redemption && redemption.status === 'ISSUED') {
-        await this.prisma.redemption.update({
-          where: { id: redemption.id },
-          data: { status: 'APPLIED' },
-        });
-        await this.activity.info(
-          LogCategory.REDEEM,
-          `Discount code ${dc.code} applied on a Shopify order`,
-          { redemptionId: redemption.id },
-        );
-      }
     }
   }
 }
