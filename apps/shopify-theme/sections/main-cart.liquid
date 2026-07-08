@@ -660,6 +660,8 @@
 
         <div class="cart__footer flex items-center md:justify-end">
           <div class="cart__footer-wrapper grid gap-5">
+            {%- comment -%} Deluxe × Zenoti loyalty redemption widget {%- endcomment -%}
+            {%- render 'loyalty-redeem' -%}
             {%- render 'gift-wrapping',
               section_id: section.id,
               gift_wrapping: gift_wrapping,
