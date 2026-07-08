@@ -1,0 +1,26 @@
+{
+  "name": "deluxemonorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Deluxe x Zenoti loyalty middleware monorepo (NestJS API, Next.js dashboard, Postgres/Prisma, Shopify theme)",
+  "packageManager": "pnpm@9.6.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "db:generate": "pnpm --filter @deluxe/db generate",
+    "db:migrate": "pnpm --filter @deluxe/db migrate",
+    "db:studio": "pnpm --filter @deluxe/db studio",
+    "db:seed": "pnpm --filter @deluxe/db seed"
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "turbo": "^2.0.9",
+    "typescript": "^5.5.4"
+  }
+}

@@ -1,0 +1,176 @@
+// Deluxe x Zenoti loyalty middleware — data model
+// Postgres + Prisma. Run `pnpm db:migrate` to create/apply migrations.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// A shopper. Bridges a Shopify customer to a Zenoti guest (the "mapping table"
+/// identity model). Populated on first successful match (by email/phone).
+model User {
+  id                String   @id @default(cuid())
+  // Identity links (either may be null until matched)
+  shopifyCustomerId String?  @unique
+  zenotiGuestId     String?  @unique
+  email             String?
+  phone             String?
+  firstName         String?
+  lastName          String?
+  // Loyalty balance, mirrored from Zenoti on each sync. Source of truth is Zenoti;
+  // this is a cached read for the dashboard and pre-redemption checks.
+  pointsBalance     Int      @default(0)
+  lastSyncedAt      DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  redemptions   Redemption[]
+  ledgerEntries PointsLedger[]
+  activityLogs  ActivityLog[]
+
+  @@index([email])
+  @@index([phone])
+}
+
+/// A single redemption: N points -> one Shopify discount code worth R(value).
+/// 100 points = R3.00 (ZAR). Code usage limit 1, valid 6 months from issue.
+model Redemption {
+  id                    String           @id @default(cuid())
+  userId                String
+  user                  User             @relation(fields: [userId], references: [id])
+  points                Int
+  amountZar             Decimal          @db.Decimal(10, 2)
+  currency              String           @default("ZAR")
+  discountCode          String?          @unique
+  shopifyPriceRuleId    String?
+  shopifyDiscountCodeId String?
+  zenotiTransactionId   String?
+  status                RedemptionStatus @default(PENDING)
+  issuedAt              DateTime?
+  expiresAt             DateTime?
+  failureReason         String?
+  createdAt             DateTime         @default(now())
+  updatedAt             DateTime         @updatedAt
+
+  ledgerEntries PointsLedger[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+/// Append-only ledger of every points movement. delta is +earned / -redeemed.
+model PointsLedger {
+  id           String       @id @default(cuid())
+  userId       String
+  user         User         @relation(fields: [userId], references: [id])
+  delta        Int
+  balanceAfter Int
+  source       LedgerSource
+  reference    String?
+  redemptionId String?
+  redemption   Redemption?  @relation(fields: [redemptionId], references: [id])
+  createdAt    DateTime     @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+/// Structured activity log — the primary feed for the dashboard "Logs" view.
+model ActivityLog {
+  id           String       @id @default(cuid())
+  level        LogLevel     @default(INFO)
+  category     LogCategory
+  message      String
+  context      Json?
+  userId       String?
+  user         User?        @relation(fields: [userId], references: [id])
+  redemptionId String?
+  createdAt    DateTime     @default(now())
+
+  @@index([level])
+  @@index([category])
+  @@index([createdAt])
+}
+
+/// Raw inbound webhook envelope (Shopify order events, Zenoti events).
+model WebhookEvent {
+  id          String        @id @default(cuid())
+  source      WebhookSource
+  topic       String
+  externalId  String?
+  payload     Json
+  status      WebhookStatus @default(RECEIVED)
+  error       String?
+  receivedAt  DateTime      @default(now())
+  processedAt DateTime?
+
+  @@index([source])
+  @@index([status])
+  @@index([receivedAt])
+}
+
+/// One row per background sync run (Zenoti balance pull). Powers dashboard KPIs.
+model SyncRun {
+  id            String      @id @default(cuid())
+  kind          String      @default("zenoti_balances")
+  status        SyncStatus  @default(RUNNING)
+  usersScanned  Int         @default(0)
+  usersUpdated  Int         @default(0)
+  error         String?
+  startedAt     DateTime    @default(now())
+  finishedAt    DateTime?
+
+  @@index([startedAt])
+}
+
+enum RedemptionStatus {
+  PENDING
+  ISSUED
+  APPLIED
+  EXPIRED
+  FAILED
+  CANCELLED
+}
+
+enum LedgerSource {
+  SYNC
+  REDEEM
+  ADJUST
+}
+
+enum LogLevel {
+  INFO
+  WARN
+  ERROR
+}
+
+enum LogCategory {
+  SYNC
+  REDEEM
+  WEBHOOK
+  SHOPIFY
+  ZENOTI
+  SYSTEM
+}
+
+enum WebhookSource {
+  SHOPIFY
+  ZENOTI
+}
+
+enum WebhookStatus {
+  RECEIVED
+  PROCESSED
+  FAILED
+}
+
+enum SyncStatus {
+  RUNNING
+  SUCCESS
+  FAILED
+}

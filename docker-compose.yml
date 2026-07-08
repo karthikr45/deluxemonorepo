@@ -1,0 +1,23 @@
+# Local Postgres for the loyalty middleware. `docker compose up -d` then set
+# DATABASE_URL to postgresql://deluxe:deluxe@localhost:5432/deluxe_loyalty
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: deluxe-loyalty-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: deluxe
+      POSTGRES_PASSWORD: deluxe
+      POSTGRES_DB: deluxe_loyalty
+    ports:
+      - "5432:5432"
+    volumes:
+      - deluxe_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U deluxe -d deluxe_loyalty"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  deluxe_pgdata:
