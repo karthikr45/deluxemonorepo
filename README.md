@@ -91,11 +91,15 @@ is committed. Key groups:
 | Zenoti | `ZENOTI_MODE`, `ZENOTI_MOCK_DEFAULT_POINTS`, `ZENOTI_API_BASE_URL`, `ZENOTI_API_KEY`, `ZENOTI_CENTER_ID` |
 | Loyalty | `LOYALTY_POINTS_PER_UNIT`, `LOYALTY_UNIT_VALUE_ZAR`, `LOYALTY_MIN_REDEEM_POINTS`, `LOYALTY_CODE_VALIDITY_MONTHS`, `LOYALTY_CURRENCY` |
 
-### Testing without Zenoti credentials (mock mode)
+### Zenoti test/sandbox vs. mock
 
-Zenoti gates its loyalty API per-account, so to exercise the full flow before you
-have credentials, set **`ZENOTI_MODE=mock`** (the default in `.env.example`). This
-swaps in an in-memory test provider (`MockZenotiClient`):
+The default is **`ZENOTI_MODE=live`** — point `ZENOTI_API_BASE_URL` at your Zenoti
+**test/sandbox tenant** and use its API key + center id to run against real Zenoti
+test data (with a live Shopify store).
+
+An optional offline provider (`ZENOTI_MODE=mock`, **off by default**) swaps in an
+in-memory `MockZenotiClient` — no keys, no network — if you ever want to test
+without any Zenoti tenant:
 
 - Any logged-in Shopify customer is treated as a Zenoti guest with
   `ZENOTI_MOCK_DEFAULT_POINTS` (default **500**) points.
