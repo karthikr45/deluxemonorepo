@@ -1,0 +1,523 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-page",
+      "disabled": true,
+      "settings": {
+        "padding_top": 28,
+        "padding_bottom": 28
+      }
+    },
+    "image_with_text_overlay_pMpjM4": {
+      "type": "image-with-text-overlay",
+      "blocks": {
+        "heading_ypkcNL": {
+          "type": "heading",
+          "settings": {
+            "heading": "Living Room",
+            "heading_size": "hd1",
+            "heading_highlight_style": "none"
+          }
+        },
+        "text_QQXXT8": {
+          "type": "text",
+          "settings": {
+            "text": "<p>The plinth has long been a much mused-over object.</p>",
+            "text_size": "text-lg"
+          }
+        }
+      },
+      "block_order": [
+        "heading_ypkcNL",
+        "text_QQXXT8"
+      ],
+      "custom_css": [
+        "@media (max-width: 767px) {.rich-text.text-center .rich-text__text.rte {max-width: 320px; margin-inline: auto; }}"
+      ],
+      "settings": {
+        "container": "full",
+        "desktop_height": "adapt",
+        "overlay_opacity": 20,
+        "enable_parallax": true,
+        "parallax_direction": "vertical",
+        "color_scheme": "",
+        "content_position": "middle-center",
+        "content_alignment": "center",
+        "mobile_height": "adapt",
+        "padding_top": 0,
+        "padding_bottom": 20,
+        "custom_class": ""
+      }
+    },
+    "highlight_text_with_image_q9Yj7E": {
+      "type": "highlight-text-with-image",
+      "blocks": {
+        "image_mjzxk4": {
+          "type": "image",
+          "settings": {
+            "image_link": "",
+            "image_width": 140,
+            "image_width_mobile": 84
+          }
+        },
+        "image_yyhie9": {
+          "type": "image",
+          "settings": {
+            "image_link": "",
+            "image_width": 140,
+            "image_width_mobile": 84
+          }
+        },
+        "image_bzkE7G": {
+          "type": "image",
+          "settings": {
+            "image_link": "",
+            "image_width": 140,
+            "image_width_mobile": 84
+          }
+        }
+      },
+      "block_order": [
+        "image_mjzxk4",
+        "image_yyhie9",
+        "image_bzkE7G"
+      ],
+      "custom_css": [
+        "highlight-text-image.text-center {max-width: 1170px; margin: 0 auto;}"
+      ],
+      "settings": {
+        "color_scheme": "",
+        "text": "Set the table [img1] in style lend the finishing [img2] touches to [img3] the space",
+        "heading_size": "hd2",
+        "alignment": "center",
+        "padding_top": 88,
+        "padding_bottom": 0,
+        "show_section_divider": false,
+        "divider_width": "fixed",
+        "custom_class": ""
+      }
+    },
+    "rich_text_zWB9Tj": {
+      "type": "rich-text",
+      "blocks": {
+        "text_dww6cF": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Sustainability is the epitome of allure in modern fashion. Our workout wear collection embodies this ethos, seamlessly blending eco-consciousness with undeniable sexiness. From sleek designs to flattering cuts, each piece exudes confidence and style while leaving a minimal environmental footprint. l world where human progress is in harmony with the planet's.</p>",
+            "text_size": "text-lg"
+          }
+        }
+      },
+      "block_order": [
+        "text_dww6cF"
+      ],
+      "custom_css": [
+        "@media (min-width: 1024px) {.rich-text.text-center {max-width: 740px; margin: 0 auto; }}",
+        "@media (min-width: 1280px) {.rich-text.text-center {max-width: 812px; }}"
+      ],
+      "settings": {
+        "color_scheme": "",
+        "content_alignment": "center",
+        "padding_top": 78,
+        "padding_bottom": 20,
+        "show_section_divider": false,
+        "divider_width": "fixed",
+        "custom_class": ""
+      }
+    },
+    "image_with_text_MgddA8": {
+      "type": "image-with-text",
+      "blocks": {
+        "subheading_XLgqVJ": {
+          "type": "subheading",
+          "settings": {
+            "subheading": "SET THE TABLE"
+          }
+        },
+        "heading_J7mctK": {
+          "type": "heading",
+          "settings": {
+            "heading": "Dine in the comfort of the Harbour Dining Chair",
+            "heading_size": "h1",
+            "heading_highlight_style": "none"
+          }
+        },
+        "text_A3Dahr": {
+          "type": "text",
+          "settings": {
+            "text": "<p>The dining room is a gathering place to come together and connect over cooking and conversation. Whether hosting a dinner party for friends or enjoying a mid-week meal with family, its ambiance sets the tone for memorable experiences – and it is here where rituals and traditions are upheld.</p>",
+            "text_size": "text-lg"
+          }
+        }
+      },
+      "block_order": [
+        "subheading_XLgqVJ",
+        "heading_J7mctK",
+        "text_A3Dahr"
+      ],
+      "custom_css": [
+        ".image-with-text__inner.md\\:text-left.text-left .rich-text__heading {max-width: 500px;}",
+        "@media (min-width: 1024px) {.image-with-text__inner {--padding-x: 4rem; }}",
+        "@media (min-width: 1280px) {.image-with-text__inner {--padding-x: 7rem; --padding-y: 6rem; }}",
+        "@media (max-width: 767.98px) {.image-with-text .image-with-text__inner {padding-top: 4.8rem; }}"
+      ],
+      "settings": {
+        "section_color_scheme": "",
+        "color_scheme": "scheme-3",
+        "image_height": "adapt",
+        "layout": "image_first",
+        "desktop_content_position": "center",
+        "desktop_content_alignment": "left",
+        "enable_parallax": false,
+        "parallax_direction": "vertical",
+        "mobile_content_alignment": "left",
+        "padding_top": 100,
+        "padding_bottom": 0,
+        "show_section_divider": false,
+        "divider_width": "fixed",
+        "custom_class": ""
+      }
+    },
+    "product_tabs_RdjXqC": {
+      "type": "product-tabs",
+      "blocks": {
+        "tab_mXTQwM": {
+          "type": "tab",
+          "settings": {
+            "title": ""
+          }
+        },
+        "tab_jq3Eje": {
+          "type": "tab",
+          "settings": {
+            "title": ""
+          }
+        },
+        "tab_e43LJP": {
+          "type": "tab",
+          "settings": {
+            "title": ""
+          }
+        },
+        "tab_f6kBjp": {
+          "type": "tab",
+          "settings": {
+            "title": ""
+          }
+        },
+        "tab_G8QtrW": {
+          "type": "tab",
+          "settings": {
+            "title": "Decor"
+          }
+        }
+      },
+      "block_order": [
+        "tab_mXTQwM",
+        "tab_jq3Eje",
+        "tab_e43LJP",
+        "tab_f6kBjp",
+        "tab_G8QtrW"
+      ],
+      "settings": {
+        "color_scheme": "",
+        "header_layout": "horizontal",
+        "heading": "Our picks for you",
+        "heading_size": "h1",
+        "heading_highlight_style": "none",
+        "limit": 6,
+        "columns": 4,
+        "column_gap": "extra-small",
+        "row_gap": "medium",
+        "grid_layout": "metro",
+        "pcard_image_ratio": "3/4",
+        "columns_mobile": "2",
+        "swipe_on_mobile": false,
+        "show_all_button_on_top": false,
+        "button_label": "",
+        "button_link": "",
+        "button_style": "btn--primary",
+        "tabs_nav_style": "design-1",
+        "padding_top": 100,
+        "padding_bottom": 100,
+        "show_section_divider": false,
+        "divider_width": "fixed",
+        "custom_class": ""
+      }
+    },
+    "scrolling_promotion_eqXpH6": {
+      "type": "scrolling-promotion",
+      "blocks": {
+        "text_DcQXgF": {
+          "type": "text",
+          "settings": {
+            "text": "FIND INSPRATION",
+            "text_size": "hd1",
+            "font_weight": "font-heading",
+            "font_style": "normal",
+            "letter_spacing": 0,
+            "text_opacity": 100,
+            "text_style": "normal",
+            "use_custom_color": false,
+            "custom_color": "#000000"
+          }
+        },
+        "image_n4aFjx": {
+          "type": "image",
+          "settings": {
+            "image_height": 32,
+            "image_rounded": false,
+            "image_height_mobile": 90
+          }
+        },
+        "text_Fn8e68": {
+          "type": "text",
+          "settings": {
+            "text": "DESIGN FOR LIVING",
+            "text_size": "hd1",
+            "font_weight": "font-heading",
+            "font_style": "normal",
+            "letter_spacing": 0,
+            "text_opacity": 100,
+            "text_style": "normal",
+            "use_custom_color": false,
+            "custom_color": "#000000"
+          }
+        },
+        "image_G9TWBt": {
+          "type": "image",
+          "settings": {
+            "image_height": 32,
+            "image_rounded": false,
+            "image_height_mobile": 90
+          }
+        },
+        "text_8WNrqd": {
+          "type": "text",
+          "settings": {
+            "text": "UNIQUE FURNITURE",
+            "text_size": "hd1",
+            "font_weight": "font-heading",
+            "font_style": "normal",
+            "letter_spacing": 0,
+            "text_opacity": 100,
+            "text_style": "normal",
+            "use_custom_color": false,
+            "custom_color": "#000000"
+          }
+        },
+        "image_6A9T8m": {
+          "type": "image",
+          "settings": {
+            "image_height": 32,
+            "image_rounded": false,
+            "image_height_mobile": 90
+          }
+        }
+      },
+      "block_order": [
+        "text_DcQXgF",
+        "image_n4aFjx",
+        "text_Fn8e68",
+        "image_G9TWBt",
+        "text_8WNrqd",
+        "image_6A9T8m"
+      ],
+      "custom_css": [
+        ".scrolling-promotion {opacity: 0.2;}"
+      ],
+      "settings": {
+        "color_scheme": "scheme-2",
+        "vertical_alignment": "center",
+        "direction": "left",
+        "pause_on_hover": true,
+        "speed": 0.1,
+        "h_spacing": 48,
+        "v_spacing": 10,
+        "padding_top": 30,
+        "padding_bottom": 0,
+        "show_divider": false,
+        "divider_layout": "vertical",
+        "custom_class": ""
+      }
+    },
+    "image_comparison_CLXe7t": {
+      "type": "image-comparison",
+      "blocks": {
+        "image_heqn9T": {
+          "type": "image",
+          "settings": {
+            "heading": "Before",
+            "color_scheme": ""
+          }
+        },
+        "image_AYRQjL": {
+          "type": "image",
+          "settings": {
+            "heading": "After",
+            "color_scheme": ""
+          }
+        }
+      },
+      "block_order": [
+        "image_heqn9T",
+        "image_AYRQjL"
+      ],
+      "custom_css": [
+        ".image-comparison {max-width: 915px; margin: 0 auto;}",
+        "@media (min-width: 1280px) {.image-comparison {max-width: 1170px; }}"
+      ],
+      "settings": {
+        "container": "fixed",
+        "color_scheme": "scheme-2",
+        "header_layout": "vertical",
+        "heading": "",
+        "heading_size": "h1",
+        "heading_highlight_style": "none",
+        "subheading": "",
+        "description": "",
+        "description_size": "text-base",
+        "button_label": "",
+        "button_link": "",
+        "button_style": "btn--underline",
+        "direction": "horizontal",
+        "image_height": "adapt",
+        "image_heading_style": "badge",
+        "padding_top": 70,
+        "padding_bottom": 0,
+        "show_section_divider": false,
+        "divider_width": "fixed",
+        "custom_class": ""
+      }
+    },
+    "rich_text_HphPmy": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_eAXU9P": {
+          "type": "heading",
+          "settings": {
+            "heading": "Converting home into  a BETTER PLACE to live",
+            "heading_size": "h1",
+            "heading_highlight_style": "none"
+          }
+        },
+        "button_YWF7i6": {
+          "type": "button",
+          "settings": {
+            "button_label": "Find inspiration for your home",
+            "button_style": "btn--underline"
+          }
+        }
+      },
+      "block_order": [
+        "heading_eAXU9P",
+        "button_YWF7i6"
+      ],
+      "custom_css": [
+        ".rich-text__heading {max-width: 45rem; margin: 0 auto;}"
+      ],
+      "settings": {
+        "color_scheme": "scheme-2",
+        "content_alignment": "center",
+        "padding_top": 80,
+        "padding_bottom": 100,
+        "show_section_divider": false,
+        "divider_width": "fixed",
+        "custom_class": ""
+      }
+    },
+    "lookbook_slider_cte8Fy": {
+      "type": "lookbook-slider",
+      "blocks": {
+        "product_U3jYqW": {
+          "type": "product",
+          "settings": {
+            "top": 62,
+            "left": 66
+          }
+        },
+        "product_9wYmkh": {
+          "type": "product",
+          "settings": {
+            "top": 35,
+            "left": 40
+          }
+        }
+      },
+      "block_order": [
+        "product_U3jYqW",
+        "product_9wYmkh"
+      ],
+      "custom_css": [
+        "@media (max-width: 767px) {.slider-controls--grouped-mobile.slider-controls--below .slider-controls--group {bottom: 14px; display: flex; justify-content: flex-start; }}",
+        "@media (min-width: 1024px) and (max-width: 1279px) {.lookbook-slider {--item-width: 215px !important; }}",
+        "@media (min-width: 1280px) {.col-lookbook-slider .section__header {--header-padding-bottom: 4rem; }}"
+      ],
+      "settings": {
+        "color_scheme": "scheme-3",
+        "use_color_scheme_in_container": true,
+        "heading": "Hot this week",
+        "heading_size": "h1",
+        "heading_highlight_style": "none",
+        "subheading": "Shop the room",
+        "description": "",
+        "description_size": "text-base",
+        "image_aspect_ratio": "adapt",
+        "image_position": "right",
+        "annotation_color": "light",
+        "product_image_ratio": "",
+        "product_per_slide": "1",
+        "padding_top": 100,
+        "padding_bottom": 0,
+        "show_section_divider": false,
+        "divider_width": "fixed",
+        "custom_class": ""
+      }
+    },
+    "featured_collection_nTAnFG": {
+      "type": "featured-collection",
+      "settings": {
+        "color_scheme": "",
+        "header_layout": "vertical",
+        "heading": "Discover unique items",
+        "heading_size": "h1",
+        "heading_highlight_style": "none",
+        "subheading": "",
+        "description": "",
+        "text_size": "text-base",
+        "show_collection_description": false,
+        "limit": 8,
+        "columns": 4,
+        "column_gap": "extra-small",
+        "row_gap": "medium",
+        "grid_layout": "standard",
+        "enable_slider": true,
+        "controls_position": "inside",
+        "pcard_image_ratio": "",
+        "columns_mobile": "1",
+        "swipe_on_mobile": true,
+        "show_all_button_on_top": false,
+        "button_label": "",
+        "button_style": "btn--primary",
+        "padding_top": 100,
+        "padding_bottom": 100,
+        "show_section_divider": false,
+        "divider_width": "fixed",
+        "custom_class": ""
+      }
+    }
+  },
+  "order": [
+    "main",
+    "image_with_text_overlay_pMpjM4",
+    "highlight_text_with_image_q9Yj7E",
+    "rich_text_zWB9Tj",
+    "image_with_text_MgddA8",
+    "product_tabs_RdjXqC",
+    "scrolling_promotion_eqXpH6",
+    "image_comparison_CLXe7t",
+    "rich_text_HphPmy",
+    "lookbook_slider_cte8Fy",
+    "featured_collection_nTAnFG"
+  ]
+}

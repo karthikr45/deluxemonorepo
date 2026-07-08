@@ -1,0 +1,109 @@
+{
+  "sections": {
+    "breadcrumbs_RzgTi9": {
+      "type": "breadcrumbs",
+      "settings": {
+        "text_alignment": "center"
+      }
+    },
+    "main": {
+      "type": "main-page",
+      "disabled": true,
+      "settings": {
+        "padding_top": 28,
+        "padding_bottom": 28
+      }
+    },
+    "rich_text_rwWQrL": {
+      "type": "rich-text",
+      "blocks": {
+        "heading_GeX69R": {
+          "type": "heading",
+          "settings": {
+            "heading": "Find a Store",
+            "heading_size": "hd2",
+            "heading_highlight_style": "none"
+          }
+        },
+        "text_nb9hEL": {
+          "type": "text",
+          "settings": {
+            "text": "<p>Have a question or comment? Don't be shy: Reach out and say hi! <br/>Support hours: Monday-Friday, 7am-3pm</p>",
+            "text_size": "text-lg"
+          }
+        }
+      },
+      "block_order": [
+        "heading_GeX69R",
+        "text_nb9hEL"
+      ],
+      "custom_css": [
+        ".rich-text__text.rte {--text-margin-top: 1.4rem;}"
+      ],
+      "settings": {
+        "color_scheme": "",
+        "content_alignment": "center",
+        "padding_top": 36,
+        "padding_bottom": 0,
+        "show_section_divider": false,
+        "divider_width": "fixed"
+      }
+    },
+    "store_locator_xYHMFd": {
+      "type": "store-locator",
+      "blocks": {
+        "location_dGAaeF": {
+          "type": "location",
+          "settings": {
+            "image_width": 210,
+            "heading": "New York",
+            "heading_size": "h1",
+            "text": "<p>Address: 4b/39 James St, Fortitude Valley QLD 4006</p><p>+391 (0)35 2568</p><p>Mon-Sat: 10am-8pm</p>",
+            "button_label": "GET DIRECTIONS",
+            "button_style": "btn--primary"
+          }
+        },
+        "location_aDKrXA": {
+          "type": "location",
+          "settings": {
+            "image_width": 210,
+            "heading": "Los Angeles",
+            "heading_size": "h1",
+            "text": "<p>Address: 1234 Sunset Blvd, Los Angeles, CA 90026</p><p>+391 (0)35 2568</p><p>Mon-Sat: 10am-8pm</p>",
+            "button_label": "GET DIRECTIONS",
+            "button_style": "btn--primary"
+          }
+        },
+        "location_pEzBt6": {
+          "type": "location",
+          "settings": {
+            "image_width": 210,
+            "heading": "Chicago",
+            "heading_size": "h1",
+            "text": "<p>Address: 5678 Michigan Ave, Chicago, IL 60611</p><p>+391 (0)35 2568</p><p>Mon-Sat: 10am-8pm</p>",
+            "button_label": "GET DIRECTIONS",
+            "button_style": "btn--primary"
+          }
+        }
+      },
+      "block_order": [
+        "location_dGAaeF",
+        "location_aDKrXA",
+        "location_pEzBt6"
+      ],
+      "settings": {
+        "color_scheme": "",
+        "padding_top": 70,
+        "padding_bottom": 100,
+        "show_section_divider": false,
+        "divider_width": "fixed"
+      }
+    }
+  },
+  "order": [
+    "breadcrumbs_RzgTi9",
+    "main",
+    "rich_text_rwWQrL",
+    "store_locator_xYHMFd"
+  ]
+}
