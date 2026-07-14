@@ -73,7 +73,9 @@
       }
 
       // 1. Load the shopper's available points.
-      fetch(base + '/loyalty/balance?shopifyCustomerId=' + encodeURIComponent(gid))
+      fetch(base + '/loyalty/balance?shopifyCustomerId=' + encodeURIComponent(gid), {
+        headers: { Accept: 'application/json', 'ngrok-skip-browser-warning': 'true' }
+      })
         .then(function (r) {
           return r.json().then(function (b) {
             if (!r.ok) throw new Error(b.message || 'Could not load points');
@@ -122,7 +124,7 @@
         redeemBtn.disabled = true;
         fetch(base + '/redemptions', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
           body: JSON.stringify({ shopifyCustomerId: gid, points: parseInt(input.value, 10) })
         })
           .then(function (r) {

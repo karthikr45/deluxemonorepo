@@ -142,6 +142,43 @@ export class ShopifyClient {
     };
   }
 
+  /**
+   * Ensure a webhook subscription exists for `topic` pointing at `address`
+   * (idempotent). Used to register orders/paid -> {middleware}/webhooks/shopify.
+   */
+  async ensureWebhook(
+    topic: string,
+    address: string,
+  ): Promise<{ id: string; created: boolean; address: string }> {
+    const existing = await this.request<{
+      webhooks: Array<{ id: number; address: string; topic: string }>;
+    }>(`/webhooks.json?topic=${encodeURIComponent(topic)}`);
+
+    const match = existing.webhooks?.find((w) => w.address === address && w.topic === topic);
+    if (match) return { id: String(match.id), created: false, address };
+
+    const created = await this.request<{ webhook: { id: number; address: string } }>(
+      `/webhooks.json`,
+      {
+        method: 'POST',
+        body: JSON.stringify({ webhook: { topic, address, format: 'json' } }),
+      },
+    );
+    return { id: String(created.webhook.id), created: true, address };
+  }
+
+  /** List all registered webhooks (id, topic, address) — handy for diagnostics. */
+  async listWebhooks(): Promise<Array<{ id: string; topic: string; address: string }>> {
+    const data = await this.request<{
+      webhooks: Array<{ id: number; topic: string; address: string }>;
+    }>(`/webhooks.json`);
+    return (data.webhooks ?? []).map((w) => ({
+      id: String(w.id),
+      topic: w.topic,
+      address: w.address,
+    }));
+  }
+
   /** Verify a Shopify webhook HMAC (base64) against the raw request body. */
   static verifyWebhookHmac(rawBody: string, hmacHeader: string, secret: string): boolean {
     // Lazy require so the client stays usable in edge runtimes that lack crypto.
