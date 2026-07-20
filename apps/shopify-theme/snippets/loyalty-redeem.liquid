@@ -1,9 +1,9 @@
 {%- comment -%}
   Deluxe loyalty redemption widget (cart).
 
-  Shows the logged-in shopper's AVAILABLE Zenoti loyalty points, lets them
-  redeem in R3 / 100-point increments, generates a single-use Shopify discount
-  code via the middleware, and applies it on the way to checkout.
+  Shows the logged-in shopper's AVAILABLE Zenoti loyalty points and their Rand
+  value, and a "Get Discount Code" button that redeems the available points into
+  a single-use Shopify discount code via the middleware.
 
   Points are only DEDUCTED in Zenoti after payment (orders/paid webhook), so
   generating a code here just reserves the points.
@@ -18,33 +18,36 @@
 {%- if customer -%}
   <div
     id="deluxe-loyalty"
+    class="dlx-loyalty"
     data-customer-id="{{ customer.id }}"
     data-middleware-url="{{ settings.loyalty_middleware_url | default: 'https://your-middleware.example.com' }}"
   >
-    <div class="deluxe-loyalty__header">
-      <h3 class="deluxe-loyalty__title">Loyalty Points</h3>
-      <div id="deluxe-loyalty-balance" class="deluxe-loyalty__balance">Loading your points…</div>
-    </div>
-
-    <div id="deluxe-loyalty-redeemer" hidden>
-      <p class="deluxe-loyalty__hint">100 points = R3. One code per order. Codes valid for 6 months.</p>
-      <div class="deluxe-loyalty__row">
-        <label for="deluxe-points">Points to redeem</label>
-        <input id="deluxe-points" type="number" min="100" step="100" value="100" />
-        <button id="deluxe-redeem-btn" type="button">Redeem</button>
+    <div class="dlx-card">
+      <div class="dlx-card__main">
+        <div class="dlx-info">
+          <div class="dlx-line">
+            <span class="dlx-label">Available Points</span>
+            <span class="dlx-colon">:</span>
+            <span class="dlx-value" id="dlx-points">0</span>
+          </div>
+          <div class="dlx-line">
+            <span class="dlx-label">Amount</span>
+            <span class="dlx-colon">:</span>
+            <span class="dlx-value" id="dlx-amount">R 0.00</span>
+          </div>
+        </div>
+        <button class="dlx-btn" id="dlx-get" type="button" disabled>Get Discount Code</button>
       </div>
-    </div>
 
-    <div id="deluxe-loyalty-result" class="deluxe-loyalty__result" hidden>
-      <p>Your discount code (applied at checkout):</p>
-      <code id="deluxe-code"></code>
-      <div class="deluxe-loyalty__actions">
-        <button id="deluxe-apply" type="button">Apply &amp; Checkout</button>
-        <button id="deluxe-copy" type="button">Copy code</button>
+      <div class="dlx-code" id="dlx-code-row" hidden>
+        <span class="dlx-code__text">Discount Code: <strong id="dlx-code"></strong></span>
+        <button class="dlx-copy" id="dlx-copy" type="button">Copy</button>
       </div>
+
+      <p class="dlx-msg" id="dlx-msg" role="alert" hidden></p>
     </div>
 
-    <p id="deluxe-loyalty-error" class="deluxe-loyalty__error" role="alert" hidden></p>
+    <p class="dlx-rate" id="dlx-rate"></p>
   </div>
 
   <script>
@@ -55,24 +58,28 @@
       var base = (root.getAttribute('data-middleware-url') || '').replace(/\/$/, '');
       var gid = 'gid://shopify/Customer/' + root.getAttribute('data-customer-id');
 
-      var balanceEl = document.getElementById('deluxe-loyalty-balance');
-      var redeemer = document.getElementById('deluxe-loyalty-redeemer');
-      var input = document.getElementById('deluxe-points');
-      var redeemBtn = document.getElementById('deluxe-redeem-btn');
-      var result = document.getElementById('deluxe-loyalty-result');
-      var codeEl = document.getElementById('deluxe-code');
-      var applyBtn = document.getElementById('deluxe-apply');
-      var copyBtn = document.getElementById('deluxe-copy');
-      var errEl = document.getElementById('deluxe-loyalty-error');
+      var pointsEl = document.getElementById('dlx-points');
+      var amountEl = document.getElementById('dlx-amount');
+      var getBtn = document.getElementById('dlx-get');
+      var codeRow = document.getElementById('dlx-code-row');
+      var codeEl = document.getElementById('dlx-code');
+      var copyBtn = document.getElementById('dlx-copy');
+      var msgEl = document.getElementById('dlx-msg');
+      var rateEl = document.getElementById('dlx-rate');
 
       var cfg = { pointsPerUnit: 100, minRedeemPoints: 100, unitValueZar: 3, currency: 'ZAR' };
+      var maxRedeemable = 0;
 
-      function showError(msg) {
-        errEl.textContent = msg;
-        errEl.hidden = false;
+      function showMsg(text) {
+        msgEl.textContent = text;
+        msgEl.hidden = false;
       }
 
-      // 1. Load the shopper's available points.
+      function fmtMoney(v) {
+        return 'R ' + Number(v || 0).toFixed(2);
+      }
+
+      // 1. Load available points.
       fetch(base + '/loyalty/balance?shopifyCustomerId=' + encodeURIComponent(gid), {
         headers: { Accept: 'application/json', 'ngrok-skip-browser-warning': 'true' }
       })
@@ -88,100 +95,165 @@
           cfg.unitValueZar = data.unitValueZar || cfg.unitValueZar;
           cfg.currency = data.currency || cfg.currency;
 
+          // Conversion note, e.g. "100 Points = R3.00".
+          rateEl.textContent = cfg.pointsPerUnit + ' Points = ' + fmtMoney(cfg.unitValueZar);
+
           if (!data.linked) {
-            balanceEl.textContent = 'Your loyalty profile is not linked yet.';
+            pointsEl.textContent = '0';
+            amountEl.textContent = fmtMoney(0);
+            showMsg('Your loyalty profile is not linked yet.');
             return;
           }
 
-          balanceEl.innerHTML =
-            '<strong>' + data.available.toLocaleString() + '</strong> points available' +
-            ' (' + cfg.currency + ' ' + Number(data.availableValueZar).toFixed(2) + ')';
+          pointsEl.textContent = Number(data.available).toLocaleString();
+          amountEl.textContent = fmtMoney(data.availableValueZar);
 
-          if (data.available < cfg.minRedeemPoints) {
-            balanceEl.innerHTML +=
-              '<br><span class="deluxe-loyalty__muted">Earn at least ' +
-              cfg.minRedeemPoints + ' points to redeem.</span>';
-            return;
+          // Only whole R-increments can be redeemed.
+          maxRedeemable = Math.floor(data.available / cfg.pointsPerUnit) * cfg.pointsPerUnit;
+          if (maxRedeemable >= cfg.minRedeemPoints) {
+            getBtn.disabled = false;
+          } else {
+            showMsg('Earn at least ' + cfg.minRedeemPoints + ' points to redeem.');
           }
-
-          // Cap the input to a whole multiple of the point unit.
-          var maxRedeemable =
-            Math.floor(data.available / cfg.pointsPerUnit) * cfg.pointsPerUnit;
-          input.max = maxRedeemable;
-          input.step = cfg.pointsPerUnit;
-          input.min = cfg.minRedeemPoints;
-          input.value = cfg.minRedeemPoints;
-          redeemer.hidden = false;
         })
         .catch(function (e) {
-          balanceEl.textContent = '';
-          showError(e.message);
+          showMsg(e.message);
         });
 
-      // 2. Redeem -> generate a discount code (reserves points).
-      redeemBtn.addEventListener('click', function () {
-        errEl.hidden = true;
-        redeemBtn.disabled = true;
+      // 2. Get discount code -> redeem the available points (reserves them).
+      getBtn.addEventListener('click', function () {
+        msgEl.hidden = true;
+        getBtn.disabled = true;
+        getBtn.textContent = 'Please wait…';
         fetch(base + '/redemptions', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
-          body: JSON.stringify({ shopifyCustomerId: gid, points: parseInt(input.value, 10) })
+          body: JSON.stringify({ shopifyCustomerId: gid, points: maxRedeemable })
         })
           .then(function (r) {
-            return r.json().then(function (body) {
-              if (!r.ok) throw new Error(body.message || 'Redemption failed');
-              return body;
+            return r.json().then(function (b) {
+              if (!r.ok) throw new Error(b.message || 'Redemption failed');
+              return b;
             });
           })
           .then(function (data) {
             codeEl.textContent = data.discountCode;
-            redeemer.hidden = true;
-            result.hidden = false;
-            // 3. Apply the code and head to checkout.
-            applyBtn.onclick = function () {
-              window.location.href =
-                '/discount/' + encodeURIComponent(data.discountCode) + '?redirect=/checkout';
-            };
-            copyBtn.onclick = function () {
-              if (navigator.clipboard) navigator.clipboard.writeText(data.discountCode);
-              copyBtn.textContent = 'Copied';
-            };
+            codeRow.hidden = false;
+            getBtn.hidden = true;
+            // Refresh the displayed available points (now reserved).
+            var remaining = maxRedeemable ? Number(pointsEl.textContent.replace(/[^0-9]/g, '')) - data.points : 0;
+            pointsEl.textContent = Math.max(0, remaining).toLocaleString();
+            amountEl.textContent = fmtMoney(Math.max(0, remaining) / cfg.pointsPerUnit * cfg.unitValueZar);
           })
           .catch(function (e) {
-            showError(e.message);
-          })
-          .finally(function () {
-            redeemBtn.disabled = false;
+            showMsg(e.message);
+            getBtn.disabled = false;
+            getBtn.textContent = 'Get Discount Code';
           });
+      });
+
+      // 3. Copy the code.
+      copyBtn.addEventListener('click', function () {
+        var code = codeEl.textContent || '';
+        if (navigator.clipboard) navigator.clipboard.writeText(code);
+        copyBtn.textContent = 'Copied';
+        setTimeout(function () {
+          copyBtn.textContent = 'Copy';
+        }, 1500);
       });
     })();
   </script>
 
   <style>
-    #deluxe-loyalty {
-      border: 1px solid rgba(0, 0, 0, 0.12);
-      border-radius: 10px;
-      padding: 16px 18px;
+    .dlx-loyalty {
       margin: 16px 0;
+      font-size: 1rem;
     }
-    .deluxe-loyalty__title { margin: 0 0 4px; font-size: 1rem; }
-    .deluxe-loyalty__balance { font-size: 0.95rem; margin-bottom: 10px; }
-    .deluxe-loyalty__hint { font-size: 0.8rem; opacity: 0.7; margin: 0 0 10px; }
-    .deluxe-loyalty__muted { opacity: 0.6; font-size: 0.8rem; }
-    .deluxe-loyalty__row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .deluxe-loyalty__row input { width: 110px; padding: 8px; }
-    .deluxe-loyalty__row button,
-    .deluxe-loyalty__actions button {
-      padding: 8px 14px; cursor: pointer; border: 0; border-radius: 6px;
-      background: #d4af37; color: #1a1a1a; font-weight: 600;
+    .dlx-card {
+      border: 1px solid #e3e3e3;
+      border-radius: 12px;
+      padding: 20px 24px;
+      background: #fff;
     }
-    .deluxe-loyalty__result code {
-      display: inline-block; padding: 6px 10px; margin: 6px 0;
-      background: rgba(0,0,0,0.06); border-radius: 6px; font-size: 1rem; letter-spacing: 1px;
+    .dlx-card__main {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      flex-wrap: wrap;
     }
-    .deluxe-loyalty__actions { display: flex; gap: 8px; margin-top: 6px; }
-    .deluxe-loyalty__actions button:last-child { background: transparent; border: 1px solid rgba(0,0,0,0.2); }
-    .deluxe-loyalty__error { color: #c0392b; font-size: 0.85rem; margin-top: 8px; }
+    .dlx-info {
+      display: grid;
+      gap: 8px;
+    }
+    .dlx-line {
+      display: grid;
+      grid-template-columns: 150px 12px auto;
+      align-items: center;
+      color: #1a1a1a;
+    }
+    .dlx-label {
+      font-weight: 400;
+    }
+    .dlx-value {
+      font-weight: 700;
+    }
+    .dlx-btn {
+      background: #c49a4c;
+      color: #fff;
+      border: 0;
+      border-radius: 10px;
+      padding: 14px 22px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .dlx-btn:hover:not(:disabled) {
+      background: #b98d3c;
+    }
+    .dlx-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .dlx-code {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-top: 20px;
+      padding-top: 4px;
+    }
+    .dlx-code__text {
+      font-size: 1.05rem;
+      color: #1a1a1a;
+    }
+    .dlx-code__text strong {
+      letter-spacing: 1px;
+    }
+    .dlx-copy {
+      background: none;
+      border: 0;
+      color: #2a44d1;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+    .dlx-msg {
+      margin: 12px 0 0;
+      color: #b23b3b;
+      font-size: 0.9rem;
+    }
+    .dlx-rate {
+      margin: 8px 2px 0;
+      color: #6b6b6b;
+      font-size: 0.85rem;
+    }
+    @media (max-width: 480px) {
+      .dlx-line {
+        grid-template-columns: 130px 12px auto;
+      }
+    }
   </style>
 {%- else -%}
   <p><a href="{{ routes.account_login_url }}">Log in</a> to redeem your loyalty points.</p>
