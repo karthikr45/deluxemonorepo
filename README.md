@@ -116,6 +116,10 @@ Switch to the real integration with `ZENOTI_MODE=live` + `ZENOTI_API_KEY` (point
 
 ## API surface (NestJS)
 
+📖 Interactive **Swagger UI** at **`/docs`** (raw spec at `/docs-json`) when the API
+is running. Full endpoint ↔ Shopify/Zenoti mapping in [`docs/API-MAP.md`](./docs/API-MAP.md).
+
+
 | Method | Path | Purpose |
 |---|---|---|
 | GET | `/loyalty/balance?shopifyCustomerId=` | Available points for a customer (cart widget) |

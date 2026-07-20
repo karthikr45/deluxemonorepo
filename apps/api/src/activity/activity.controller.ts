@@ -1,8 +1,10 @@
 import { Controller, Get, Query } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { LogCategory, LogLevel, Prisma } from '@deluxe/db';
 import { PrismaService } from '../prisma/prisma.service';
 
 /** Read API for the dashboard "Logs" view. */
+@ApiTags('activity')
 @Controller('activity')
 export class ActivityController {
   constructor(private readonly prisma: PrismaService) {}

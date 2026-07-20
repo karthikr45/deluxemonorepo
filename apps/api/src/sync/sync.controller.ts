@@ -1,7 +1,9 @@
 import { Controller, Get, Post, Query } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { PrismaService } from '../prisma/prisma.service';
 import { SyncService } from './sync.service';
 
+@ApiTags('sync')
 @Controller('sync')
 export class SyncController {
   constructor(

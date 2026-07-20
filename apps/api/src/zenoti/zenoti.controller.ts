@@ -1,4 +1,5 @@
 import { Controller, Get, Query } from '@nestjs/common';
+import { ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ZenotiApiError } from '@deluxe/shared';
 import { ZenotiService } from './zenoti.service';
 
@@ -20,11 +21,19 @@ function describe(err: unknown): string {
  * Reports, step by step: does auth work (centers), does a guest match, and can
  * we read their loyalty balance — so you see exactly what succeeds/fails.
  */
+@ApiTags('zenoti')
 @Controller('zenoti')
 export class ZenotiController {
   constructor(private readonly zenoti: ZenotiService) {}
 
   @Get('ping')
+  @ApiOperation({
+    summary: 'Zenoti connectivity diagnostic',
+    description:
+      'Verifies auth (lists centers) and, if email/phone is given, that a guest matches and their loyalty balance reads. Run after setting Zenoti keys.',
+  })
+  @ApiQuery({ name: 'email', required: false })
+  @ApiQuery({ name: 'phone', required: false })
   async ping(@Query('email') email?: string, @Query('phone') phone?: string) {
     const result: {
       mode: string;

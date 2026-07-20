@@ -1,19 +1,26 @@
 import { Body, Controller, Get, NotFoundException, Param, Post, Query } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { RedemptionStatus } from '@deluxe/db';
 import { RedemptionService } from './redemption.service';
 import { RedeemDto } from './dto/redeem.dto';
 
+@ApiTags('redemptions')
 @Controller('redemptions')
 export class RedemptionController {
   constructor(private readonly redemption: RedemptionService) {}
 
-  /** Called by the Shopify theme widget to redeem points for a discount code. */
   @Post()
+  @ApiOperation({
+    summary: 'Redeem points → issue a discount code',
+    description:
+      'Reserves the points (status ISSUED) and creates a single-use Shopify discount code worth the Rand value. Points are NOT deducted in Zenoti here — that happens post-payment via the orders/paid webhook.',
+  })
   redeem(@Body() dto: RedeemDto) {
     return this.redemption.redeem(dto);
   }
 
   @Get()
+  @ApiOperation({ summary: 'List redemptions (dashboard)' })
   list(
     @Query('status') status?: RedemptionStatus,
     @Query('take') take = '50',

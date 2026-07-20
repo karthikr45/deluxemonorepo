@@ -7,6 +7,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import type { Request } from 'express';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { ShopifyClient } from '@deluxe/shared';
 import { LogCategory, WebhookSource, WebhookStatus } from '@deluxe/db';
 import { PrismaService } from '../prisma/prisma.service';
@@ -19,6 +20,7 @@ import { RedemptionService } from '../redemption/redemption.service';
  * consumed: the reserved loyalty points are deducted in Zenoti and the
  * redemption is marked APPLIED. All events are persisted for the dashboard.
  */
+@ApiTags('webhooks')
 @Controller('webhooks')
 export class WebhooksController {
   constructor(
@@ -29,6 +31,11 @@ export class WebhooksController {
   ) {}
 
   @Post('shopify')
+  @ApiOperation({
+    summary: 'Shopify webhook receiver (orders/paid)',
+    description:
+      'Called by Shopify. HMAC-verified. On orders/paid, deducts the reserved points in Zenoti for any of our discount codes used on the order. Not meant to be called manually.',
+  })
   async shopify_(
     @Req() req: Request & { rawBody?: string },
     @Headers('x-shopify-hmac-sha256') hmac?: string,
