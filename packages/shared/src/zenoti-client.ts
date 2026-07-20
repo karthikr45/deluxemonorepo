@@ -22,11 +22,18 @@ export interface RedeemPointsResult {
   balanceAfter: number;
 }
 
+export interface ZenotiCenter {
+  id: string;
+  name?: string;
+  code?: string;
+}
+
 /**
  * Contract implemented by both the real {@link ZenotiClient} and the
  * {@link MockZenotiClient} test provider, so the app can swap between them.
  */
 export interface IZenotiClient {
+  listCenters(): Promise<ZenotiCenter[]>;
   findGuest(params: { email?: string; phone?: string }): Promise<ZenotiGuest | null>;
   getGuest(guestId: string): Promise<ZenotiGuest>;
   getLoyaltyBalance(guestId: string): Promise<number>;
@@ -67,6 +74,14 @@ export class ZenotiClient implements IZenotiClient {
       throw new ZenotiApiError(`Zenoti ${init?.method ?? 'GET'} ${path} -> ${res.status}`, res.status, body);
     }
     return (await res.json()) as T;
+  }
+
+  /** List centers (locations). Also the simplest call to verify auth works. */
+  async listCenters(): Promise<ZenotiCenter[]> {
+    const data = await this.request<{
+      centers?: Array<{ id?: string; name?: string; code?: string }>;
+    }>(`/centers`);
+    return (data.centers ?? []).map((c) => ({ id: c.id ?? '', name: c.name, code: c.code }));
   }
 
   /** Find a guest by email or phone. Returns the first match, if any. */

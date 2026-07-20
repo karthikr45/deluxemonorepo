@@ -80,6 +80,10 @@ export class MockZenotiClient implements IZenotiClient {
     return record;
   }
 
+  async listCenters(): Promise<Array<{ id: string; name?: string; code?: string }>> {
+    return [{ id: 'mock-center-1', name: 'Mock Center', code: 'MOCK' }];
+  }
+
   async findGuest(params: { email?: string; phone?: string }): Promise<ZenotiGuest | null> {
     if (!params.email && !params.phone) return null;
 
